@@ -142,7 +142,25 @@ CREATE TABLE reviews (
 );
 ```
 
-### 6. Admin Users Table
+### 6. Users Table (Customer Accounts)
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    email VARCHAR(200) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    password_hash VARCHAR(255) NOT NULL,
+    address TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(10),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP
+);
+```
+
+### 7. Admin Users Table
 ```sql
 CREATE TABLE admin_users (
     id SERIAL PRIMARY KEY,
