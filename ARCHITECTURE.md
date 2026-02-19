@@ -277,7 +277,7 @@ CREATE TABLE admin_users (
 │   └── page.js              # Shopping cart
 │
 ├── checkout/
-│   └── page.js              # Checkout form
+│   └── page.js              # Checkout form (Protected - Auth Required)
 │
 ├── about/
 │   └── page.js              # About us page
