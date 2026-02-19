@@ -58,6 +58,7 @@ const AdminDashboard = () => {
             </div>
             <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base">
               <Link to="/admin/products" className="hover:text-lime transition-colors" data-testid="admin-nav-products">Products</Link>
+              <Link to="/admin/categories" className="hover:text-lime transition-colors" data-testid="admin-nav-categories">Categories</Link>
               <Link to="/admin/orders" className="hover:text-lime transition-colors" data-testid="admin-nav-orders">Orders</Link>
               <Link to="/admin/users" className="hover:text-lime transition-colors" data-testid="admin-nav-users">Users</Link>
               <button onClick={handleLogout} className="flex items-center space-x-2 hover:text-red-400 transition-colors" data-testid="admin-logout-button">
