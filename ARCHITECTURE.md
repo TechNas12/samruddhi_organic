@@ -178,6 +178,13 @@ CREATE TABLE admin_users (
 
 ### Public Endpoints
 
+#### User Authentication
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user profile
+- `PUT /api/auth/profile` - Update user profile
+
 #### Products
 - `GET /api/products` - Get all products (with pagination, filters)
 - `GET /api/products/{id}` - Get single product details
