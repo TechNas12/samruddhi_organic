@@ -237,6 +237,12 @@ CREATE TABLE admin_users (
 - `GET /api/admin/reviews` - Get all reviews (including unapproved)
 - `PATCH /api/admin/reviews/{id}/approve` - Approve review
 
+#### User Management
+- `GET /api/admin/users` - Get all registered users
+- `GET /api/admin/users/{id}` - Get user details
+- `PATCH /api/admin/users/{id}/status` - Activate/deactivate user
+- `DELETE /api/admin/users/{id}` - Delete user
+
 ---
 
 ## Frontend Structure (Next.js App Router)
