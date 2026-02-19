@@ -265,15 +265,50 @@ const AdminProducts = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-earth mb-2">Image URL</label>
-                <input
-                  type="url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full"
-                  placeholder="https://example.com/image.jpg"
-                  data-testid="product-image-input"
-                />
+                <label className="block text-sm font-medium text-earth mb-2">Product Image</label>
+                
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="mb-4">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-forest/20"
+                    />
+                  </div>
+                )}
+
+                {/* Upload Option */}
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-earth/70 mb-2">Option 1: Upload Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full text-sm"
+                    disabled={uploading}
+                    data-testid="product-image-upload"
+                  />
+                  {uploading && <p className="text-xs text-lime mt-1">Uploading image...</p>}
+                  <p className="text-xs text-earth/60 mt-1">Max size: 5MB. Formats: JPG, PNG, WEBP, GIF</p>
+                </div>
+
+                {/* URL Option */}
+                <div>
+                  <label className="block text-xs font-medium text-earth/70 mb-2">Option 2: Image URL</label>
+                  <input
+                    type="url"
+                    value={formData.image_url}
+                    onChange={(e) => {
+                      setFormData({ ...formData, image_url: e.target.value });
+                      setImagePreview(e.target.value);
+                    }}
+                    className="w-full"
+                    placeholder="https://example.com/image.jpg"
+                    data-testid="product-image-url"
+                  />
+                  <p className="text-xs text-earth/60 mt-1">Or paste an image URL from the web</p>
+                </div>
               </div>
               <div className="flex space-x-4">
                 <button type="submit" className="btn-primary" data-testid="save-product-button">
