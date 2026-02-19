@@ -101,7 +101,7 @@ CREATE TABLE products (
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     order_number VARCHAR(50) UNIQUE NOT NULL,
-    user_id INTEGER REFERENCES users(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
     customer_name VARCHAR(200) NOT NULL,
     email VARCHAR(200) NOT NULL,
     phone VARCHAR(20) NOT NULL,
