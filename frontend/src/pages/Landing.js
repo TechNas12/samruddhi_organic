@@ -66,9 +66,9 @@ const Landing = () => {
       </section>
 
       {/* Features */}
-      <section className="py-16" data-testid="features-section">
+      <section className="py-12 md:py-16" data-testid="features-section">
         <div className="container-custom">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {[
               { icon: Leaf, title: '100% Organic', desc: 'All products are certified organic and chemical-free' },
               { icon: Truck, title: 'Fast Delivery', desc: 'Quick and reliable delivery across India' },
