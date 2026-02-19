@@ -269,13 +269,20 @@ const AdminProducts = () => {
                 <label className="block text-sm font-medium text-earth mb-2">Product Image</label>
                 
                 {/* Image Preview */}
-                {imagePreview && (
+                {imagePreview ? (
                   <div className="mb-4">
                     <img 
                       src={imagePreview} 
                       alt="Preview" 
                       className="w-32 h-32 object-cover rounded-lg border-2 border-forest/20"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/150x150?text=Invalid+Image';
+                      }}
                     />
+                  </div>
+                ) : (
+                  <div className="mb-4 w-32 h-32 bg-cream rounded-lg border-2 border-dashed border-forest/20 flex items-center justify-center">
+                    <span className="text-xs text-earth/40">No image</span>
                   </div>
                 )}
 
