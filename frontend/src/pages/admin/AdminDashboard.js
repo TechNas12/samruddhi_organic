@@ -77,7 +77,7 @@ const AdminDashboard = () => {
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-forest border-t-transparent"></div>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
             <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white" data-testid="stat-products">
               <div className="flex items-center justify-between mb-4">
                 <Package className="w-10 h-10" />
