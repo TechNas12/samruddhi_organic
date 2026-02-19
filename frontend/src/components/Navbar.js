@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -8,25 +8,27 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
+    setMobileMenuOpen(false);
   };
 
   return (
     <nav className="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-forest/10" data-testid="main-navbar">
       <div className="container-custom py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-3" data-testid="logo-link">
+          <Link to="/" className="flex items-center space-x-2 md:space-x-3" data-testid="logo-link">
             <img 
               src="https://customer-assets.emergentagent.com/job_3b372f6e-faee-4ae6-847e-dee6ad5a47b3/artifacts/w3mczdzd_samruddhi.png" 
               alt="Samruddhi Organics Logo" 
-              className="h-14 w-14"
+              className="h-10 w-10 md:h-14 md:w-14"
             />
             <div>
-              <h1 className="text-2xl font-bold text-forest font-syne">Samruddhi Organics</h1>
-              <p className="text-xs text-lime">Pure & Natural</p>
+              <h1 className="text-lg md:text-2xl font-bold text-forest font-syne">Samruddhi Organics</h1>
+              <p className="text-xs text-lime hidden sm:block">Pure & Natural</p>
             </div>
           </Link>
 
@@ -37,7 +39,7 @@ const Navbar = () => {
             <Link to="/contact" className="text-earth hover:text-forest transition-colors" data-testid="nav-contact">Contact</Link>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <Link 
               to="/cart" 
               className="relative p-2 hover:bg-forest/10 rounded-full transition-colors"
