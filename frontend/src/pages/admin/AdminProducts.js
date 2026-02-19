@@ -97,7 +97,47 @@ const AdminProducts = () => {
       image_url: product.image_url || '',
       is_featured: product.is_featured
     });
+    setImagePreview(product.image_url || '');
     setShowForm(true);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPG, PNG, WEBP, GIF)');
+      return;
+    }
+
+    setUploading(true);
+    const formDataUpload = new FormData();
+    formDataUpload.append('file', file);
+
+    try {
+      const res = await axios.post(`${API_URL}/api/admin/upload-image`, formDataUpload, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      setFormData(prev => ({ ...prev, image_url: res.data.image_url }));
+      setImagePreview(res.data.image_url);
+      toast.success('Image uploaded successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDelete = async (id) => {
