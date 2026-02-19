@@ -253,6 +253,21 @@ CREATE TABLE admin_users (
 ├── page.js                   # Landing page (hero, products, reviews)
 ├── globals.css               # Global styles
 │
+├── auth/
+│   ├── signup/
+│   │   └── page.js          # User registration
+│   └── login/
+│       └── page.js          # User login
+│
+├── account/
+│   ├── layout.js            # Account layout (protected)
+│   ├── dashboard/
+│   │   └── page.js          # User dashboard
+│   ├── orders/
+│   │   └── page.js          # Order history
+│   └── profile/
+│       └── page.js          # Edit profile
+│
 ├── products/
 │   ├── page.js              # Product catalog with filters
 │   └── [id]/
@@ -286,10 +301,14 @@ CREATE TABLE admin_users (
     │   │   └── page.js     # Add product
     │   └── [id]/
     │       └── page.js     # Edit product
-    └── orders/
-        ├── page.js         # Order list
+    ├── orders/
+    │   ├── page.js         # Order list
+    │   └── [id]/
+    │       └── page.js     # Order details
+    └── users/
+        ├── page.js         # User list
         └── [id]/
-            └── page.js     # Order details
+            └── page.js     # User details
 
 /components
 ├── Navbar.js
