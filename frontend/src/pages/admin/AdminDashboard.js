@@ -51,17 +51,17 @@ const AdminDashboard = () => {
       {/* Admin Navbar */}
       <nav className="bg-earth text-white shadow-lg">
         <div className="container-custom py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold font-syne">Admin Panel</h1>
+              <h1 className="text-xl md:text-2xl font-bold font-syne">Admin Panel</h1>
               <p className="text-sm text-cream/70">Welcome, {adminUser.username}</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base">
               <Link to="/admin/products" className="hover:text-lime transition-colors" data-testid="admin-nav-products">Products</Link>
               <Link to="/admin/orders" className="hover:text-lime transition-colors" data-testid="admin-nav-orders">Orders</Link>
               <Link to="/admin/users" className="hover:text-lime transition-colors" data-testid="admin-nav-users">Users</Link>
               <button onClick={handleLogout} className="flex items-center space-x-2 hover:text-red-400 transition-colors" data-testid="admin-logout-button">
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4 md:w-5 md:h-5" />
                 <span>Logout</span>
               </button>
             </div>
