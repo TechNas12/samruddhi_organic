@@ -94,14 +94,14 @@ const Landing = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-white" data-testid="featured-products-section">
+      <section className="py-12 md:py-16 bg-white" data-testid="featured-products-section">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 font-syne text-forest">Featured Products</h2>
-            <p className="text-earth/70 text-lg">Handpicked organic essentials for your farm</p>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 font-syne text-forest">Featured Products</h2>
+            <p className="text-earth/70 text-base md:text-lg">Handpicked organic essentials for your farm</p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {featuredProducts.map((product) => (
               <Link
                 key={product.id}
