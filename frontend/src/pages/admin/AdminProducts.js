@@ -174,6 +174,7 @@ const AdminProducts = () => {
             onClick={() => {
               setShowForm(true);
               setEditingProduct(null);
+              setImagePreview('');
               setFormData({ name: '', description: '', category_id: '', price: '', stock: '', image_url: '', is_featured: false });
             }}
             className="btn-primary flex items-center space-x-2"
