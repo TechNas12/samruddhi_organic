@@ -334,34 +334,37 @@ CREATE TABLE admin_users (
 
 ## Key User Flows
 
-### 1. Customer Registration & Purchase Flow
+### 1. Guest User (Not Logged In)
 ```
 1. Land on homepage → View featured products & reviews
-2. Click "Sign Up" → Register with email/password
-3. Login → JWT token stored
-4. Browse products → Filter by category
-5. Click product → View details, add to cart
-6. View cart → Update quantities
-7. Checkout → Form pre-filled with user profile data
-8. Submit order → Order linked to user account
-9. Email sent → Customer receives confirmation
-10. View "My Orders" → See order history and status
+2. Browse products → Filter by category
+3. View product details → Add to cart
+4. View cart → Update quantities
+5. Click "Proceed to Checkout" → Redirected to Login/Signup page
+   → "Please login or create an account to complete your order"
+6. Cart items preserved in local storage during signup/login
 ```
 
-### 2. Guest Checkout Flow (Optional)
+### 2. New Customer Registration & Purchase Flow
 ```
-1. Browse products → Add to cart
-2. Checkout → Fill complete form manually
-3. Order created → Not linked to user account
-4. Email confirmation sent
+1. Browse products → Add items to cart
+2. Click checkout → Redirected to signup page
+3. Complete signup → Register with email/password
+4. Auto-login → JWT token stored, cart preserved
+5. Redirected to checkout → Form pre-filled with profile data
+6. Submit order → Order linked to user account
+7. Email sent → Customer receives confirmation
+8. View "My Orders" → See order history and status
 ```
 
 ### 3. Returning Customer Flow
 ```
-1. Login → Access account dashboard
-2. View order history → Track previous orders
-3. Quick checkout → Use saved address
-4. Update profile → Modify contact details
+1. Login → JWT token stored
+2. Browse products → Add to cart
+3. Checkout → Form pre-filled with saved address
+4. Submit order → Track in order history
+5. View order history → See all past orders with status
+6. Update profile → Modify contact details for future orders
 ```
 
 ### 4. Admin Management Flow
