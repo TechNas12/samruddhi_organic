@@ -334,22 +334,40 @@ CREATE TABLE admin_users (
 
 ## Key User Flows
 
-### 1. Customer Purchase Flow
+### 1. Customer Registration & Purchase Flow
 ```
 1. Land on homepage → View featured products & reviews
-2. Browse products → Filter by category
-3. Click product → View details, add to cart
-4. View cart → Update quantities
-5. Checkout → Fill form (name, email, phone, address)
-6. Submit order → Order created in database
-7. Email sent → Customer receives confirmation
-8. Show confirmation page → Order number displayed
+2. Click "Sign Up" → Register with email/password
+3. Login → JWT token stored
+4. Browse products → Filter by category
+5. Click product → View details, add to cart
+6. View cart → Update quantities
+7. Checkout → Form pre-filled with user profile data
+8. Submit order → Order linked to user account
+9. Email sent → Customer receives confirmation
+10. View "My Orders" → See order history and status
 ```
 
-### 2. Admin Management Flow
+### 2. Guest Checkout Flow (Optional)
+```
+1. Browse products → Add to cart
+2. Checkout → Fill complete form manually
+3. Order created → Not linked to user account
+4. Email confirmation sent
+```
+
+### 3. Returning Customer Flow
+```
+1. Login → Access account dashboard
+2. View order history → Track previous orders
+3. Quick checkout → Use saved address
+4. Update profile → Modify contact details
+```
+
+### 4. Admin Management Flow
 ```
 1. Admin login → JWT token stored
-2. Dashboard → View stats (products, orders, stock alerts)
+2. Dashboard → View stats (products, orders, stock alerts, total users)
 3. Manage Products:
    - View all products
    - Add new product
@@ -361,7 +379,12 @@ CREATE TABLE admin_users (
    - Filter by status (pending, processing, completed)
    - Update order status
    - View customer details
-5. Approve Reviews
+5. Manage Users:
+   - View all registered users
+   - See user details and order history
+   - Activate/deactivate accounts
+   - Delete users if needed
+6. Approve Reviews
 ```
 
 ---
