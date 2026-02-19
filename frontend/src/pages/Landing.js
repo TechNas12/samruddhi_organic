@@ -36,7 +36,7 @@ const Landing = () => {
   return (
     <div className="bg-cream" data-testid="landing-page">
       {/* Hero Section */}
-      <section className="relative h-[600px] overflow-hidden" data-testid="hero-section">
+      <section className="relative h-[500px] md:h-[600px] overflow-hidden" data-testid="hero-section">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: 'url(https://images.pexels.com/photos/4863823/pexels-photo-4863823.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940)' }}
@@ -49,12 +49,12 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-2xl text-white"
+            className="max-w-2xl text-white px-4"
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 font-syne" data-testid="hero-title">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 font-syne" data-testid="hero-title">
               Pure Organic <span className="text-lime">Farming Supplies</span>
             </h1>
-            <p className="text-xl mb-8 text-cream/90">
+            <p className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 text-cream/90">
               Nurture your farm with 100% natural and organic products. From seeds to soil, we've got you covered.
             </p>
             <Link to="/products" className="btn-primary inline-flex items-center space-x-2" data-testid="shop-now-button">
