@@ -430,12 +430,15 @@ Samruddhi Organics Team
 
 ## Security Considerations
 
-1. **Admin Authentication**: JWT tokens with expiration
-2. **Password Hashing**: bcrypt for admin passwords
-3. **Input Validation**: Pydantic models in FastAPI
-4. **SQL Injection**: Prevented by SQLAlchemy ORM
-5. **CORS**: Configured to allow Next.js frontend only
-6. **Environment Variables**: Sensitive data in .env files
+1. **User Authentication**: JWT tokens with expiration (customers)
+2. **Admin Authentication**: Separate JWT tokens with admin role validation
+3. **Password Hashing**: bcrypt for user and admin passwords
+4. **Protected Routes**: Middleware to verify JWT tokens
+5. **Input Validation**: Pydantic models in FastAPI
+6. **SQL Injection**: Prevented by SQLAlchemy ORM
+7. **CORS**: Configured to allow Next.js frontend only
+8. **Environment Variables**: Sensitive data in .env files
+9. **User Privacy**: Users can only access their own orders
 
 ---
 
