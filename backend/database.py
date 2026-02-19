@@ -3,9 +3,14 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer, Numeric, Boolean, DateTime, ForeignKey, func
 from datetime import datetime, timezone
 from typing import List, Optional
+from dotenv import load_dotenv
+from pathlib import Path
 import os
 
-DATABASE_URL = os.getenv('DATABASE_URL', '').replace('postgresql://', 'postgresql+asyncpg://')
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@localhost:5432/samruddhi_organics').replace('postgresql://', 'postgresql+asyncpg://')
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
