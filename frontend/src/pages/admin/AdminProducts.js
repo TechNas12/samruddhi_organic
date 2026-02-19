@@ -163,7 +163,12 @@ const AdminProducts = () => {
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Dashboard</span>
           </Link>
-          <h1 className="text-2xl font-bold font-syne">Product Management</h1>
+          <div className="flex items-center space-x-4 text-sm">
+            <Link to="/admin/products" className="text-lime font-medium">Products</Link>
+            <Link to="/admin/categories" className="hover:text-lime transition-colors">Categories</Link>
+            <Link to="/admin/orders" className="hover:text-lime transition-colors">Orders</Link>
+            <Link to="/admin/users" className="hover:text-lime transition-colors">Users</Link>
+          </div>
         </div>
       </nav>
 
