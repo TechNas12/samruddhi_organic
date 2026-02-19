@@ -179,6 +179,20 @@ CREATE TABLE admin_users (
 ### Public Endpoints
 
 #### User Authentication
+
+## Cart Management Strategy
+
+### Guest Users (Not Logged In)
+- Cart stored in **browser localStorage**
+- Items persist across page refreshes
+- When user signs up or logs in, cart is preserved and submitted with first order
+
+### Logged-In Users
+- Cart can be stored in localStorage (simple approach)
+- OR synced to backend database for cross-device access (advanced)
+- For this MVP: localStorage with persistence through auth flow
+
+
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
