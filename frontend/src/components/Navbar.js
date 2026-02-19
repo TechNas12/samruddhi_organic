@@ -40,7 +40,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="flex items-center space-x-2 md:space-x-4">
             <Link 
               to="/cart" 
               className="relative p-2 hover:bg-forest/10 rounded-full transition-colors"
@@ -79,18 +78,20 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 hover:bg-forest/10 rounded-full transition-colors"
               data-testid="mobile-menu-button"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-forest" /> : <Menu className="w-6 h-6 text-forest" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-forest" />
+              ) : (
+                <Menu className="w-6 h-6 text-forest" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pt-4 border-t border-forest/10" data-testid="mobile-menu">
             <div className="flex flex-col space-y-4">
