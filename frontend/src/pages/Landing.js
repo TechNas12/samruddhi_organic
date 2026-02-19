@@ -109,21 +109,21 @@ const Landing = () => {
                 className="card group hover:scale-105"
                 data-testid={`featured-product-${product.id}`}
               >
-                <div className="relative h-48 bg-cream rounded-2xl overflow-hidden mb-4">
+                <div className="relative h-40 md:h-48 bg-cream rounded-2xl overflow-hidden mb-4">
                   <img
                     src={product.image_url || 'https://via.placeholder.com/300x300?text=Product'}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute top-3 right-3 bg-lime text-white px-3 py-1 rounded-full text-xs font-bold">
+                  <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-lime text-white px-2 py-1 rounded-full text-xs font-bold">
                     Featured
                   </div>
                 </div>
-                <h3 className="font-bold text-lg mb-2 font-syne">{product.name}</h3>
-                <p className="text-earth/70 text-sm mb-3 line-clamp-2">{product.description}</p>
+                <h3 className="font-bold text-sm md:text-lg mb-2 font-syne line-clamp-1">{product.name}</h3>
+                <p className="text-earth/70 text-xs md:text-sm mb-2 md:mb-3 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-forest">₹{product.price}</span>
-                  <span className="text-sm text-earth/60">Stock: {product.stock}</span>
+                  <span className="text-lg md:text-2xl font-bold text-forest">₹{product.price}</span>
+                  <span className="text-xs md:text-sm text-earth/60">Stock: {product.stock}</span>
                 </div>
               </Link>
             ))}
