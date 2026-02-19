@@ -12,6 +12,8 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
