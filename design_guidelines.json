@@ -1,0 +1,106 @@
+{
+  "design_strategy": {
+    "theme": "organic_modernism",
+    "core_philosophy": "Digital Clay. The site should feel tactile, grounded, and alive. Avoid sterile white backgrounds. Use cream/bone as the canvas. Animations should be slow and viscous (like honey or growth), not snappy and robotic.",
+    "emotional_tone": "Nourishing, Trustworthy, Vibrant, Human",
+    "target_audience": "Conscious consumers, organic farmers, gardening enthusiasts"
+  },
+  "typography": {
+    "primary_font": {
+      "name": "Syne",
+      "type": "Display / Sans-Serif",
+      "usage": "Headings (H1-H3), Hero Text",
+      "weights": ["700", "800"],
+      "source": "https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap",
+      "reason": "Syne has an 'Art Nouveau' organic quirkiness that feels grown, not built. It breaks the 'Inter' generic tech look."
+    },
+    "secondary_font": {
+      "name": "Manrope",
+      "type": "Sans-Serif",
+      "usage": "Body text, UI elements, Buttons, Price tags",
+      "weights": ["400", "500", "600"],
+      "source": "https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap",
+      "reason": "Highly readable modern geometric sans that pairs perfectly with Syne's eccentricity."
+    }
+  },
+  "colors": {
+    "palette": {
+      "cream_base": "#F5F1E8",
+      "forest_primary": "#4A7C59",
+      "lime_accent": "#7FB539",
+      "earth_dark": "#2D342C",
+      "terracotta_highlight": "#D87D4A",
+      "soft_white": "#FFFFFF"
+    },
+    "usage_rules": {
+      "background": "Use cream_base (#F5F1E8) for 80% of page backgrounds. Pure white only for cards/inputs.",
+      "text": "Use earth_dark (#2D342C) for text. NEVER use pure black.",
+      "primary_action": "forest_primary (#4A7C59) for main buttons. Hover: Darken by 10%.",
+      "secondary_action": "lime_accent (#7FB539) for 'Sale' tags or 'New' badges only. Don't overuse.",
+      "borders": "1px solid forest_primary with 10% opacity."
+    },
+    "gradients": "No linear gradients. Use soft radial gradients of lime_accent at 5% opacity behind hero images for 'glow'."
+  },
+  "layout_and_grid": {
+    "container_width": "max-w-7xl",
+    "spacing_scale": "Relaxed. Use p-8, p-12, p-16. Avoid tight p-4 clusters.",
+    "bento_grid": "Use CSS Grid for the Hero and Category sections. Asymmetry is key. 1x1, 2x1, 2x2 cells.",
+    "border_radius": "rounded-2xl or rounded-3xl. Organic shapes, no sharp corners except for deliberate Brutalist contrast (optional)."
+  },
+  "components": {
+    "buttons": {
+      "style": "Pill-shaped (rounded-full).",
+      "padding": "py-3 px-8",
+      "animation": "hover:scale-105 transition-transform duration-300 ease-out",
+      "shadow": "shadow-lg shadow-forest_primary/20"
+    },
+    "cards": {
+      "product_card": "Bg-white. rounded-3xl. No visible border. Soft shadow-xl. Image takes 60% of height. Price tag floats top-right.",
+      "category_card": "Image full cover with gradient overlay. Text bottom-left."
+    },
+    "inputs": {
+      "style": "Bg-white. Border-b-2 border-forest_primary/20. No outline. Focus: Border-forest_primary.",
+      "radius": "rounded-t-lg rounded-b-none (Underline style) OR Full pill rounded-full for search."
+    },
+    "navigation": {
+      "style": "Floating glassmorphism. bg-cream_base/80 backdrop-blur-md. Border-b border-forest_primary/10."
+    }
+  },
+  "motion_and_interaction": {
+    "library": "framer-motion",
+    "scrolling": "lenis (optional but recommended for smooth feel)",
+    "rules": [
+      "Images must have a subtle 'parallax' or 'scale' effect on hover.",
+      "Page transitions: Fade in + Slide up (y: 20 -> 0).",
+      "Stagger children elements in lists/grids."
+    ]
+  },
+  "assets": {
+    "image_urls": {
+      "hero_bg": "https://images.pexels.com/photos/4863823/pexels-photo-4863823.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category_fresh": "https://images.pexels.com/photos/5425794/pexels-photo-5425794.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category_tools": "https://images.pexels.com/photos/7299931/pexels-photo-7299931.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "about_farmer": "https://images.unsplash.com/photo-1607321809142-5364a2fc94a8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHxoYXBweSUyMGluZGlhbiUyMGZhcm1lciUyMGluJTIwZmllbGR8ZW58MHx8fHwxNzcxNTA2NzU0fDA&ixlib=rb-4.1.0&q=85",
+      "logo": "https://customer-assets.emergentagent.com/job_3b372f6e-faee-4ae6-847e-dee6ad5a47b3/artifacts/w3mczdzd_samruddhi.png"
+    },
+    "icons": "Use 'lucide-react'. Style: Thin strokes (1.5px). Color: forest_primary."
+  },
+  "implementation_notes": {
+    "tech_stack_adjustment": "Project is using React (CRA) structure, not Next.js. Use 'react-router-dom' for routing. Do not use Next.js specific components like <Image /> or 'next/font'. Use standard <img> and CSS imports for fonts.",
+    "installation_required": [
+      "npm install framer-motion @lenis/react",
+      "npm install -D @tailwindcss/typography"
+    ],
+    "file_structure_guide": {
+      "components": "src/components/ui",
+      "pages": "src/pages",
+      "layouts": "src/layouts"
+    }
+  },
+  "universal_guidelines": [
+    "Do not use gradients for text.",
+    "Avoid 'Inter' font completely.",
+    "Ensure 4.5:1 contrast ratio for all text.",
+    "All interactive elements must have data-testid attributes."
+  ]
+}
