@@ -545,6 +545,31 @@ async def admin_create_category(category_data: CategoryCreate, current_admin = D
     await db.refresh(new_category)
     return new_category
 
+@api_router.put('/admin/categories/{category_id}', response_model=CategoryResponse)
+async def admin_update_category(category_id: int, category_data: CategoryCreate, current_admin = Depends(get_current_admin), db = Depends(get_db)):
+    result = await db.execute(select(Category).where(Category.id == category_id))
+    category = result.scalar_one_or_none()
+    if not category:
+        raise HTTPException(status_code=404, detail='Category not found')
+    
+    for key, value in category_data.model_dump().items():
+        setattr(category, key, value)
+    
+    await db.commit()
+    await db.refresh(category)
+    return category
+
+@api_router.delete('/admin/categories/{category_id}')
+async def admin_delete_category(category_id: int, current_admin = Depends(get_current_admin), db = Depends(get_db)):
+    result = await db.execute(select(Category).where(Category.id == category_id))
+    category = result.scalar_one_or_none()
+    if not category:
+        raise HTTPException(status_code=404, detail='Category not found')
+    
+    await db.delete(category)
+    await db.commit()
+    return {'message': 'Category deleted successfully'}
+
 # Admin Order Management
 @api_router.get('/admin/orders', response_model=List[OrderResponse])
 async def admin_get_orders(status_filter: Optional[str] = None, current_admin = Depends(get_current_admin), db = Depends(get_db)):
