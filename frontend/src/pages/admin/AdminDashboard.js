@@ -112,7 +112,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           <Link to="/admin/products" className="card hover:scale-105 transition-transform" data-testid="manage-products-card">
             <Package className="w-12 h-12 text-forest mb-4" />
             <h3 className="text-xl font-bold mb-2 font-syne text-forest">Manage Products</h3>
