@@ -451,6 +451,33 @@ async def admin_login(credentials: AdminLogin, db = Depends(get_db)):
     token = create_access_token({'admin_id': admin.id, 'username': admin.username}, role='admin')
     return {'token': token, 'admin': {'id': admin.id, 'username': admin.username}}
 
+# Admin Image Upload
+@api_router.post('/admin/upload-image')
+async def upload_image(file: UploadFile = File(...), current_admin = Depends(get_current_admin)):
+    # Validate file type
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail='Invalid file type. Only images are allowed.')
+    
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+    upload_path = ROOT_DIR / "static" / "uploads" / unique_filename
+    
+    # Save file
+    try:
+        with open(upload_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Failed to upload image: {str(e)}')
+    
+    # Return the URL to access the image
+    frontend_url = os.getenv('FRONTEND_URL', 'https://organics-hub-1.preview.emergentagent.com')
+    image_url = f"{frontend_url}/static/uploads/{unique_filename}"
+    
+    return {'image_url': image_url, 'filename': unique_filename}
+
 # Admin Product Management
 @api_router.post('/admin/products', response_model=ProductResponse)
 async def admin_create_product(product_data: ProductCreate, current_admin = Depends(get_current_admin), db = Depends(get_db)):
