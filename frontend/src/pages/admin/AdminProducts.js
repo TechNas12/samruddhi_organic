@@ -270,7 +270,7 @@ const AdminProducts = () => {
                 
                 {/* Image Preview */}
                 {imagePreview ? (
-                  <div className="mb-4">
+                  <div className="mb-4 relative inline-block">
                     <img 
                       src={imagePreview} 
                       alt="Preview" 
@@ -279,6 +279,19 @@ const AdminProducts = () => {
                         e.target.src = 'https://via.placeholder.com/150x150?text=Invalid+Image';
                       }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview('');
+                        setFormData(prev => ({ ...prev, image_url: '' }));
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                      title="Remove image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 ) : (
                   <div className="mb-4 w-32 h-32 bg-cream rounded-lg border-2 border-dashed border-forest/20 flex items-center justify-center">
