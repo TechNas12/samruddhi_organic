@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -9,6 +10,7 @@ import os
 import uuid
 from dotenv import load_dotenv
 from pathlib import Path
+import shutil
 
 from database import init_db, get_db, User, Product, Category, Order, OrderItem, Review, AdminUser
 from auth import hash_password, verify_password, create_access_token, get_current_user, get_current_admin
@@ -19,6 +21,9 @@ load_dotenv(ROOT_DIR / '.env')
 
 app = FastAPI()
 api_router = APIRouter(prefix='/api')
+
+# Mount static files for serving uploaded images
+app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "static")), name="static")
 
 app.add_middleware(
     CORSMiddleware,
