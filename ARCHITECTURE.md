@@ -201,7 +201,8 @@ CREATE TABLE admin_users (
 - `POST /api/reviews` - Submit a review
 
 #### Orders
-- `POST /api/orders` - Create new order (checkout)
+- `POST /api/orders` - Create new order (checkout) - Protected
+- `GET /api/orders/my-orders` - Get logged-in user's order history - Protected
 - `GET /api/orders/{order_number}` - Get order details (for confirmation)
 
 ### Admin Endpoints (Protected)
