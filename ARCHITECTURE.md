@@ -431,6 +431,32 @@ Samruddhi Organics Team
 
 ---
 
+## Authentication Requirements
+
+### Public Access (No Login Required)
+- Landing page
+- Product catalog and product details
+- About us page
+- Contact page
+- Add items to cart (stored in browser)
+- View cart
+
+### Protected Access (Login Required)
+- **Checkout process** - Must be logged in to place orders
+- Order confirmation page
+- User dashboard
+- Order history
+- Profile management
+
+### Admin Access (Admin Login Required)
+- Admin dashboard
+- Product management (CRUD)
+- Order management
+- User management
+- Review approval
+
+---
+
 ## Security Considerations
 
 1. **User Authentication**: JWT tokens with expiration (customers)
