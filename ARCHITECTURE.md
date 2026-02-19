@@ -317,10 +317,12 @@ CREATE TABLE admin_users (
 ├── CategoryFilter.js
 ├── ReviewCard.js
 ├── CartItem.js
+├── ProtectedRoute.js
 └── admin/
     ├── Sidebar.js
     ├── StatsCard.js
-    └── OrderTable.js
+    ├── OrderTable.js
+    └── UserTable.js
 
 /lib
 ├── api.js                   # API client functions
