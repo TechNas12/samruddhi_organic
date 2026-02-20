@@ -5,11 +5,12 @@ import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { CheckCircle } from 'lucide-react';
+import IndiaAddressForm from '../components/IndiaAddressForm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Checkout = () => {
-  const { user, token, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, userAxios } = useAuth();
   const { cart, getTotalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,20 @@ const Checkout = () => {
     }
   }, [isAuthenticated, cart, navigate, user]);
 
+  const handleUseProfileAddress = () => {
+    if (!user) return;
+    setFormData(prev => ({
+      ...prev,
+      customer_name: user.name || '',
+      phone: user.phone || '',
+      address: user.address || '',
+      city: user.city || '',
+      state: user.state || '',
+      pincode: user.pincode || ''
+    }));
+    toast.success('Filled from your profile details');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.customer_name || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
@@ -64,10 +79,7 @@ const Checkout = () => {
         ...formData
       };
 
-      const res = await axios.post(`${API_URL}/api/orders`, orderData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
+      await userAxios.post('/orders', orderData);
       clearCart();
       toast.success('Order placed successfully!');
       navigate('/dashboard');
@@ -90,6 +102,16 @@ const Checkout = () => {
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="card space-y-4">
               <h2 className="text-2xl font-bold mb-4 font-syne text-forest">Delivery Information</h2>
+              {user && (
+                <button
+                  type="button"
+                  onClick={handleUseProfileAddress}
+                  className="text-sm text-forest underline mb-2"
+                  data-testid="use-profile-address-button"
+                >
+                  Use my profile address
+                </button>
+              )}
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -116,53 +138,21 @@ const Checkout = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-earth mb-2">Address *</label>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full"
-                  rows="3"
-                  required
-                  data-testid="address-input"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-earth mb-2">City *</label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full"
-                    required
-                    data-testid="city-input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-earth mb-2">State *</label>
-                  <input
-                    type="text"
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full"
-                    required
-                    data-testid="state-input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-earth mb-2">Pincode *</label>
-                  <input
-                    type="text"
-                    value={formData.pincode}
-                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                    className="w-full"
-                    required
-                    data-testid="pincode-input"
-                  />
-                </div>
-              </div>
+              <IndiaAddressForm
+                value={{
+                  address: formData.address,
+                  city: formData.city,
+                  state: formData.state,
+                  pincode: formData.pincode,
+                }}
+                onChange={(updated) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    ...updated,
+                  }))
+                }
+                required
+              />
 
               <div>
                 <label className="block text-sm font-medium text-earth mb-2">Order Notes (Optional)</label>

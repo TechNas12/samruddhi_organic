@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, ArrowLeft, FolderPlus } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import { useAdmin } from '../../context/AdminContext';
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -17,19 +15,21 @@ const AdminCategories = () => {
     image_url: ''
   });
   const navigate = useNavigate();
-  const adminToken = localStorage.getItem('adminToken');
+  const { isAuthenticated, loading: authLoading, adminAxios } = useAdmin();
 
   useEffect(() => {
-    if (!adminToken) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    fetchCategories();
-  }, [adminToken]);
+    if (isAuthenticated) {
+      fetchCategories();
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/categories`);
+      const res = await adminAxios.get('/categories');
       setCategories(res.data);
     } catch (error) {
       toast.error('Failed to fetch categories');
@@ -42,14 +42,10 @@ const AdminCategories = () => {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await axios.put(`${API_URL}/api/admin/categories/${editingCategory.id}`, formData, {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
+        await adminAxios.put(`/admin/categories/${editingCategory.id}`, formData);
         toast.success('Category updated successfully!');
       } else {
-        await axios.post(`${API_URL}/api/admin/categories`, formData, {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
+        await adminAxios.post('/admin/categories', formData);
         toast.success('Category created successfully!');
       }
       
@@ -75,9 +71,7 @@ const AdminCategories = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this category? All products in this category will remain but will have no category.')) return;
     try {
-      await axios.delete(`${API_URL}/api/admin/categories/${id}`, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      await adminAxios.delete(`/admin/categories/${id}`);
       toast.success('Category deleted successfully!');
       fetchCategories();
     } catch (error) {
@@ -85,7 +79,7 @@ const AdminCategories = () => {
     }
   };
 
-  if (!adminToken) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-categories-page">

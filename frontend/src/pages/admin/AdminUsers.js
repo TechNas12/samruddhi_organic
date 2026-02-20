@@ -1,30 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, UserCheck, UserX } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import { useAdmin } from '../../context/AdminContext';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const adminToken = localStorage.getItem('adminToken');
+  const { isAuthenticated, loading: authLoading, adminAxios } = useAdmin();
 
   useEffect(() => {
-    if (!adminToken) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    fetchUsers();
-  }, [adminToken]);
+    if (isAuthenticated) {
+      fetchUsers();
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      const res = await adminAxios.get('/admin/users');
       setUsers(res.data);
     } catch (error) {
       toast.error('Failed to fetch users');
@@ -35,9 +33,7 @@ const AdminUsers = () => {
 
   const handleToggleStatus = async (userId, currentStatus) => {
     try {
-      await axios.patch(`${API_URL}/api/admin/users/${userId}/status?is_active=${!currentStatus}`, {}, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      await adminAxios.patch(`/admin/users/${userId}/status?is_active=${!currentStatus}`, {});
       toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       fetchUsers();
     } catch (error) {
@@ -45,7 +41,7 @@ const AdminUsers = () => {
     }
   };
 
-  if (!adminToken) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-users-page">

@@ -39,6 +39,7 @@ const ProductDetail = () => {
     }
     addToCart(product, quantity);
     toast.success(`${quantity} x ${product.name} added to cart!`);
+    navigate('/checkout');
   };
 
   if (loading) {

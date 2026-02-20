@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -15,6 +15,7 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCategories();
@@ -55,6 +56,7 @@ const Products = () => {
     e.preventDefault();
     addToCart(product);
     toast.success(`${product.name} added to cart!`);
+    navigate('/checkout');
   };
 
   return (

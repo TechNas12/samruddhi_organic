@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, Users, AlertTriangle, LogOut } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import { useAdmin } from '../../context/AdminContext';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const adminToken = localStorage.getItem('adminToken');
-  const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  const { admin, isAuthenticated, loading: authLoading, logout, adminAxios } = useAdmin();
 
   useEffect(() => {
-    if (!adminToken) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    fetchStats();
-  }, [adminToken]);
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/stats`, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      const res = await adminAxios.get('/admin/stats');
       setStats(res.data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -38,13 +35,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
+  const handleLogout = async () => {
+    await logout();
     navigate('/admin/login');
   };
 
-  if (!adminToken) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-dashboard">
@@ -54,7 +50,7 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl md:text-2xl font-bold font-syne">Admin Panel</h1>
-              <p className="text-sm text-cream/70">Welcome, {adminUser.username}</p>
+              <p className="text-sm text-cream/70">Welcome, {admin?.username || 'Admin'}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base">
               <Link to="/admin/products" className="hover:text-lime transition-colors" data-testid="admin-nav-products">Products</Link>

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Eye } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import { useAdmin } from '../../context/AdminContext';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -12,23 +10,23 @@ const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const navigate = useNavigate();
-  const adminToken = localStorage.getItem('adminToken');
+  const { isAuthenticated, loading: authLoading, adminAxios } = useAdmin();
 
   useEffect(() => {
-    if (!adminToken) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    fetchOrders();
-  }, [adminToken, statusFilter]);
+    if (isAuthenticated) {
+      fetchOrders();
+    }
+  }, [isAuthenticated, authLoading, navigate, statusFilter]);
 
   const fetchOrders = async () => {
     try {
-      let url = `${API_URL}/api/admin/orders`;
+      let url = '/admin/orders';
       if (statusFilter) url += `?status_filter=${statusFilter}`;
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      const res = await adminAxios.get(url);
       setOrders(res.data);
     } catch (error) {
       toast.error('Failed to fetch orders');
@@ -39,9 +37,7 @@ const AdminOrders = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await axios.patch(`${API_URL}/api/admin/orders/${orderId}/status?status=${newStatus}`, {}, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      await adminAxios.patch(`/admin/orders/${orderId}/status?status=${newStatus}`, {});
       toast.success('Order status updated!');
       fetchOrders();
       setSelectedOrder(null);
@@ -61,7 +57,7 @@ const AdminOrders = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  if (!adminToken) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-orders-page">

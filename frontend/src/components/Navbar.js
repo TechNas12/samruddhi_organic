@@ -54,22 +54,34 @@ const Navbar = () => {
             </Link>
 
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center space-x-3">
-                <Link 
-                  to="/dashboard" 
+              <div className="hidden md:flex items-center space-x-3 relative group">
+                <button
                   className="flex items-center space-x-2 px-4 py-2 bg-forest/10 rounded-full hover:bg-forest/20 transition-colors"
-                  data-testid="dashboard-link"
+                  data-testid="user-menu-button"
                 >
                   <User className="w-5 h-5 text-forest" />
-                  <span className="text-sm font-medium text-forest">{user?.name}</span>
-                </Link>
-                <button 
-                  onClick={handleLogout} 
-                  className="p-2 hover:bg-red-50 rounded-full transition-colors"
-                  data-testid="logout-button"
-                >
-                  <LogOut className="w-5 h-5 text-red-600" />
+                  <span className="text-sm font-medium text-forest">
+                    {user?.name || 'Account'}
+                  </span>
                 </button>
+                {/* Desktop dropdown - visible only on hover */}
+                <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-lg border border-earth/10 py-1 text-sm hidden group-hover:block">
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 hover:bg-cream"
+                    data-testid="nav-profile"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center space-x-2"
+                    data-testid="logout-button"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-3">
@@ -126,13 +138,20 @@ const Navbar = () => {
               
               {isAuthenticated ? (
                 <>
-                  <Link 
-                    to="/dashboard" 
+                  <Link
+                    to="/profile"
                     className="flex items-center space-x-2 py-2 text-forest font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <User className="w-5 h-5" />
                     <span>{user?.name}</span>
+                  </Link>
+                  <Link
+                    to="/my-orders"
+                    className="py-2 text-earth hover:text-forest transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    My Orders
                   </Link>
                   <button 
                     onClick={handleLogout} 

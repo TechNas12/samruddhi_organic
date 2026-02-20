@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, Integer, Numeric, Boolean, DateTime, ForeignKey, func
+from sqlalchemy import String, Text, Integer, Numeric, Boolean, DateTime, ForeignKey, func, Index
 from datetime import datetime, timezone
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -15,8 +15,45 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@loca
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+
 class Base(DeclarativeBase):
     pass
+
+
+class IndianState(Base):
+    __tablename__ = "indian_states"
+
+    code: Mapped[str] = mapped_column(String(4), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    type: Mapped[str] = mapped_column(String(20), nullable=False, default="state")  # state or ut
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    cities: Mapped[List["IndianCity"]] = relationship(
+        "IndianCity", back_populates="state", cascade="all, delete-orphan"
+    )
+
+
+class IndianCity(Base):
+    __tablename__ = "indian_cities"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    state_code: Mapped[str] = mapped_column(
+        String(4), ForeignKey("indian_states.code"), nullable=False, index=True
+    )
+    district: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    pin_prefix: Mapped[Optional[str]] = mapped_column(String(6), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    state: Mapped["IndianState"] = relationship("IndianState", back_populates="cities")
+
+
+Index("ix_indian_cities_state_name", IndianCity.state_code, IndianCity.name)
+
 
 class User(Base):
     __tablename__ = 'users'

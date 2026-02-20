@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useAdmin } from '../../context/AdminContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -24,16 +25,18 @@ const AdminProducts = () => {
     is_featured: false
   });
   const navigate = useNavigate();
-  const adminToken = localStorage.getItem('adminToken');
+  const { isAuthenticated, loading: authLoading, adminAxios } = useAdmin();
 
   useEffect(() => {
-    if (!adminToken) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/admin/login');
       return;
     }
-    fetchProducts();
-    fetchCategories();
-  }, [adminToken]);
+    if (isAuthenticated) {
+      fetchProducts();
+      fetchCategories();
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const fetchProducts = async () => {
     try {
@@ -66,14 +69,10 @@ const AdminProducts = () => {
       };
 
       if (editingProduct) {
-        await axios.put(`${API_URL}/api/admin/products/${editingProduct.id}`, data, {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
+        await adminAxios.put(`/admin/products/${editingProduct.id}`, data);
         toast.success('Product updated successfully!');
       } else {
-        await axios.post(`${API_URL}/api/admin/products`, data, {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
+        await adminAxios.post('/admin/products', data);
         toast.success('Product created successfully!');
       }
       
@@ -123,9 +122,8 @@ const AdminProducts = () => {
     formDataUpload.append('file', file);
 
     try {
-      const res = await axios.post(`${API_URL}/api/admin/upload-image`, formDataUpload, {
+      const res = await adminAxios.post('/admin/upload-image', formDataUpload, {
         headers: {
-          Authorization: `Bearer ${adminToken}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -143,9 +141,7 @@ const AdminProducts = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      await axios.delete(`${API_URL}/api/admin/products/${id}`, {
-        headers: { Authorization: `Bearer ${adminToken}` }
-      });
+      await adminAxios.delete(`/admin/products/${id}`);
       toast.success('Product deleted successfully!');
       fetchProducts();
     } catch (error) {
@@ -153,7 +149,7 @@ const AdminProducts = () => {
     }
   };
 
-  if (!adminToken) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-products-page">
@@ -319,22 +315,38 @@ const AdminProducts = () => {
                   <p className="text-xs text-earth/60 mt-1">Max size: 5MB. Formats: JPG, PNG, WEBP, GIF</p>
                 </div>
 
-                {/* URL Option */}
-                <div>
-                  <label className="block text-xs font-medium text-earth/70 mb-2">Option 2: Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => {
-                      setFormData({ ...formData, image_url: e.target.value });
-                      setImagePreview(e.target.value);
-                    }}
-                    className="w-full"
-                    placeholder="https://example.com/image.jpg"
-                    data-testid="product-image-url"
-                  />
-                  <p className="text-xs text-earth/60 mt-1">Or paste an image URL from the web</p>
-                </div>
+                {/* URL Option - Only show if no image uploaded */}
+                {!imagePreview && (
+                  <div>
+                    <label className="block text-xs font-medium text-earth/70 mb-2">Option 2: Image URL</label>
+                    <input
+                      type="url"
+                      value={formData.image_url}
+                      onChange={(e) => {
+                        setFormData({ ...formData, image_url: e.target.value });
+                        setImagePreview(e.target.value);
+                      }}
+                      className="w-full"
+                      placeholder="https://example.com/image.jpg"
+                      data-testid="product-image-url"
+                    />
+                    <p className="text-xs text-earth/60 mt-1">Or paste an image URL from the web</p>
+                  </div>
+                )}
+                
+                {/* Show uploaded image URL as read-only if uploaded via file */}
+                {imagePreview && formData.image_url && formData.image_url.includes('/static/uploads/') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-earth/70 mb-1">Uploaded Image:</label>
+                    <input
+                      type="text"
+                      value={formData.image_url}
+                      readOnly
+                      className="w-full text-xs bg-cream/50 border border-earth/20 rounded px-2 py-1 text-earth/60"
+                      data-testid="uploaded-image-url"
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex space-x-4">
                 <button type="submit" className="btn-primary" data-testid="save-product-button">

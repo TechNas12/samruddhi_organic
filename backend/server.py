@@ -11,34 +11,77 @@ import uuid
 from dotenv import load_dotenv
 from pathlib import Path
 import shutil
+from fastapi import Request, Response
 
-from database import init_db, get_db, User, Product, Category, Order, OrderItem, Review, AdminUser
+from database import (
+    init_db,
+    get_db,
+    User,
+    Product,
+    Category,
+    Order,
+    OrderItem,
+    Review,
+    AdminUser,
+    IndianState,
+    IndianCity,
+)
 from auth import hash_password, verify_password, create_access_token, get_current_user, get_current_admin
 from email_service import send_order_confirmation_email
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from fastapi.responses import JSONResponse
+
+from locations_seed import seed_indian_states, seed_indian_cities
+
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+secure_cookie = ENVIRONMENT == "production"
 
 app = FastAPI()
 api_router = APIRouter(prefix='/api')
+limiter = Limiter(key_func=get_remote_address)
+
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
 
 # Mount static files for serving uploaded images
 app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "static")), name="static")
 
+raw_cors_origins = os.environ.get("CORS_ORIGINS")
+if ENVIRONMENT == "production":
+    if not raw_cors_origins or raw_cors_origins.strip() in {"", "*"}:
+        raise RuntimeError(
+            "CORS_ORIGINS must be set to a comma-separated list of allowed origins in production"
+        )
+    allowed_origins = [origin.strip() for origin in raw_cors_origins.split(",") if origin.strip()]
+else:
+    # In non-production, allow configured origins or fallback to wildcard
+    if raw_cors_origins:
+        allowed_origins = [origin.strip() for origin in raw_cors_origins.split(",") if origin.strip()]
+    else:
+        allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=allowed_origins,
     allow_methods=['*'],
     allow_headers=['*'],
 )
 
 # Pydantic Models
 class UserSignup(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=255)
     email: EmailStr
-    password: str
-    phone: Optional[str] = None
+    password: str = Field(min_length=6, max_length=128)
+    phone: Optional[str] = Field(default=None, min_length=6, max_length=20)
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -56,6 +99,7 @@ class UserProfile(BaseModel):
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
@@ -107,13 +151,13 @@ class OrderItemCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     items: List[OrderItemCreate]
-    customer_name: str
-    phone: str
-    address: str
-    city: str
-    state: str
-    pincode: str
-    notes: Optional[str] = None
+    customer_name: str = Field(min_length=1, max_length=255)
+    phone: str = Field(min_length=6, max_length=20)
+    address: str = Field(min_length=1, max_length=500)
+    city: str = Field(min_length=1, max_length=100)
+    state: str = Field(min_length=1, max_length=100)
+    pincode: str = Field(min_length=3, max_length=20)
+    notes: Optional[str] = Field(default=None, max_length=1000)
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -174,9 +218,115 @@ class AdminStats(BaseModel):
     pending_orders: int
     total_users: int
 
+
+# Location Models
+class StateResponse(BaseModel):
+    code: str
+    name: str
+    type: str
+
+    class Config:
+        from_attributes = True
+
+
+class CityResponse(BaseModel):
+    id: int
+    name: str
+    state_code: str
+
+    class Config:
+        from_attributes = True
+
+
+# Location Endpoints
+@api_router.get("/locations/states", response_model=List[StateResponse])
+async def list_states(db = Depends(get_db)):
+    result = await db.execute(select(IndianState).order_by(IndianState.name))
+    states = result.scalars().all()
+    return states
+
+
+@api_router.get("/locations/cities", response_model=List[CityResponse])
+@limiter.limit("60/minute")
+async def search_cities(
+    request: Request,
+    state_code: str,
+    q: str = "",
+    limit: int = 20,
+    db = Depends(get_db),
+):
+    state_result = await db.execute(select(IndianState).where(IndianState.code == state_code))
+    state = state_result.scalar_one_or_none()
+    if not state:
+        raise HTTPException(status_code=400, detail="Invalid state code")
+
+    query = select(IndianCity).where(IndianCity.state_code == state_code)
+    if q:
+        query = query.where(func.lower(IndianCity.name).like(f"%{q.lower()}%"))
+    limit = min(max(limit, 1), 50)
+    query = query.order_by(IndianCity.name).limit(limit)
+
+    result = await db.execute(query)
+    cities = result.scalars().all()
+    return cities
+
+
+# Helper functions
+async def get_state_by_name(db, state_name: str) -> Optional[IndianState]:
+    result = await db.execute(
+        select(IndianState).where(func.lower(IndianState.name) == state_name.lower())
+    )
+    return result.scalar_one_or_none()
+
+
+async def validate_state_and_city(
+    db, state_name: Optional[str], city_name: Optional[str]
+) -> None:
+    """Validate that state and city are consistent with reference data."""
+    if not state_name and not city_name:
+        return
+
+    if not state_name:
+        raise HTTPException(status_code=400, detail="State is required when city is provided")
+
+    state = await get_state_by_name(db, state_name)
+    if not state:
+        raise HTTPException(status_code=400, detail="Invalid state")
+
+    if not city_name:
+        return
+
+    # If we have no city data for this state yet, allow any city string.
+    city_count_result = await db.execute(
+        select(func.count(IndianCity.id)).where(IndianCity.state_code == state.code)
+    )
+    city_count = city_count_result.scalar_one() or 0
+    if city_count == 0:
+        return
+
+    city_query = await db.execute(
+        select(IndianCity).where(
+            IndianCity.state_code == state.code,
+            func.lower(IndianCity.name) == city_name.lower(),
+        )
+    )
+    city = city_query.scalar_one_or_none()
+    if not city:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid city for selected state",
+        )
+
+
 # User Auth Endpoints
 @api_router.post('/auth/signup')
-async def signup(user_data: UserSignup, db = Depends(get_db)):
+@limiter.limit("5/minute")
+async def signup(
+    request: Request,
+    user_data: UserSignup,
+    response: Response,
+    db = Depends(get_db)
+    ):
     result = await db.execute(select(User).where(User.email == user_data.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail='Email already registered')
@@ -187,15 +337,43 @@ async def signup(user_data: UserSignup, db = Depends(get_db)):
         phone=user_data.phone,
         password_hash=hash_password(user_data.password)
     )
+
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    
-    token = create_access_token({'user_id': new_user.id, 'email': new_user.email}, role='user')
-    return {'token': token, 'user': {'id': new_user.id, 'name': new_user.name, 'email': new_user.email}}
+
+    token = create_access_token(
+        {'user_id': new_user.id, 'email': new_user.email},
+        role='user'
+    )
+
+    response.set_cookie(
+    key="access_token",
+    value=token,
+    httponly=True,
+    secure=secure_cookie,
+    samesite="lax",
+    max_age=60 * 60 * 24 * 7
+)
+
+    return {
+        "message": "Signup successful",
+        "user": {
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email
+        }
+    }
+
 
 @api_router.post('/auth/login')
-async def login(credentials: UserLogin, db = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request,
+    credentials: UserLogin,
+    response: Response,
+    db = Depends(get_db)
+):
     result = await db.execute(select(User).where(User.email == credentials.email))
     user = result.scalar_one_or_none()
     
@@ -207,9 +385,42 @@ async def login(credentials: UserLogin, db = Depends(get_db)):
     
     user.last_login = datetime.now(timezone.utc)
     await db.commit()
-    
-    token = create_access_token({'user_id': user.id, 'email': user.email}, role='user')
-    return {'token': token, 'user': {'id': user.id, 'name': user.name, 'email': user.email}}
+
+    token = create_access_token(
+        {'user_id': user.id, 'email': user.email},
+        role='user'
+    )
+
+    response.set_cookie(
+    key="access_token",
+    value=token,
+    httponly=True,
+    secure=secure_cookie,
+    samesite="lax",
+    max_age=60 * 60 * 24 * 7
+)
+
+    return {
+        "message": "Login successful",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email
+        }
+    }
+
+@api_router.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=secure_cookie,
+        samesite="lax"
+    )
+
+    return {"message": "Logged out successfully"}
+
+
 
 @api_router.get('/auth/me', response_model=UserProfile)
 async def get_profile(current_user = Depends(get_current_user), db = Depends(get_db)):
@@ -228,14 +439,22 @@ async def update_profile(profile_data: UserProfileUpdate, current_user = Depends
     
     if profile_data.name is not None:
         user.name = profile_data.name
+    if profile_data.email is not None and profile_data.email != user.email:
+        # Ensure new email is not already taken by another user
+        existing = await db.execute(select(User).where(User.email == profile_data.email))
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail='Email already registered')
+        user.email = profile_data.email
     if profile_data.phone is not None:
         user.phone = profile_data.phone
     if profile_data.address is not None:
         user.address = profile_data.address
-    if profile_data.city is not None:
-        user.city = profile_data.city
-    if profile_data.state is not None:
-        user.state = profile_data.state
+    if profile_data.city is not None or profile_data.state is not None:
+        await validate_state_and_city(db, profile_data.state or user.state, profile_data.city or user.city)
+        if profile_data.city is not None:
+            user.city = profile_data.city
+        if profile_data.state is not None:
+            user.state = profile_data.state
     if profile_data.pincode is not None:
         user.pincode = profile_data.pincode
     
@@ -303,7 +522,15 @@ async def get_categories(db = Depends(get_db)):
 
 # Order Endpoints
 @api_router.post('/orders', response_model=OrderResponse)
-async def create_order(order_data: OrderCreate, current_user = Depends(get_current_user), db = Depends(get_db)):
+@limiter.limit("10/minute")
+async def create_order(
+    order_data: OrderCreate,
+    request: Request,
+    current_user = Depends(get_current_user),
+    db = Depends(get_db),
+):
+    await validate_state_and_city(db, order_data.state, order_data.city)
+
     result = await db.execute(select(User).where(User.id == current_user['user_id']))
     user = result.scalar_one_or_none()
     if not user:
@@ -432,7 +659,12 @@ async def get_reviews(product_id: Optional[int] = None, db = Depends(get_db)):
     return reviews
 
 @api_router.post('/reviews', response_model=ReviewResponse)
-async def create_review(review_data: ReviewCreate, db = Depends(get_db)):
+@limiter.limit("10/minute")
+async def create_review(
+    review_data: ReviewCreate,
+    request: Request,
+    db = Depends(get_db),
+):
     new_review = Review(**review_data.model_dump())
     db.add(new_review)
     await db.commit()
@@ -441,15 +673,53 @@ async def create_review(review_data: ReviewCreate, db = Depends(get_db)):
 
 # Admin Auth
 @api_router.post('/admin/login')
-async def admin_login(credentials: AdminLogin, db = Depends(get_db)):
-    result = await db.execute(select(AdminUser).where(AdminUser.username == credentials.username))
+@limiter.limit("5/minute")
+async def admin_login(
+    request: Request,
+    credentials: AdminLogin,
+    response: Response,
+    db = Depends(get_db)
+):
+    result = await db.execute(
+        select(AdminUser).where(AdminUser.username == credentials.username)
+    )
     admin = result.scalar_one_or_none()
-    
+
     if not admin or not verify_password(credentials.password, admin.password_hash):
         raise HTTPException(status_code=401, detail='Invalid credentials')
-    
-    token = create_access_token({'admin_id': admin.id, 'username': admin.username}, role='admin')
-    return {'token': token, 'admin': {'id': admin.id, 'username': admin.username}}
+
+    token = create_access_token(
+        {'admin_id': admin.id, 'username': admin.username},
+        role='admin'
+    )
+
+    # ✅ THIS IS THE IMPORTANT PART
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7
+    )
+
+    return {
+        "message": "Admin login successful",
+        "admin": {
+            "id": admin.id,
+            "username": admin.username
+        }
+    }
+
+@api_router.get('/admin/me')
+async def admin_me(current_admin = Depends(get_current_admin)):
+    """Get current admin user info"""
+    return {
+        "admin": {
+            "id": current_admin.get("admin_id"),
+            "username": current_admin.get("username")
+        }
+    }
 
 # Admin Image Upload
 @api_router.post('/admin/upload-image')
@@ -472,11 +742,14 @@ async def upload_image(file: UploadFile = File(...), current_admin = Depends(get
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Failed to upload image: {str(e)}')
     
-    # Return the URL to access the image
-    frontend_url = os.getenv('FRONTEND_URL', 'https://organics-hub-1.preview.emergentagent.com')
-    image_url = f"{frontend_url}/static/uploads/{unique_filename}"
+    # Return the path to access the image (frontend will prepend backend base URL)
+    # This keeps the base URL single-sourced from the frontend .env
+    image_path = f"/static/uploads/{unique_filename}"
     
-    return {'image_url': image_url, 'filename': unique_filename}
+    return {
+        'image_path': image_path,
+        'filename': unique_filename
+    }
 
 # Admin Product Management
 @api_router.post('/admin/products', response_model=ProductResponse)
@@ -655,6 +928,14 @@ async def admin_get_stats(current_admin = Depends(get_current_admin), db = Depen
         'total_users': total_users or 0
     }
 
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please slow down."},
+    )
+
+
 # Admin Review Management
 @api_router.get('/admin/reviews', response_model=List[ReviewResponse])
 async def admin_get_reviews(current_admin = Depends(get_current_admin), db = Depends(get_db)):
@@ -678,21 +959,22 @@ app.include_router(api_router)
 @app.on_event('startup')
 async def startup():
     await init_db()
-    
+    # Seed reference data for Indian states (idempotent)
     from database import AsyncSessionLocal
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(AdminUser).where(AdminUser.username == 'admin'))
-        admin = result.scalar_one_or_none()
-        if not admin:
-            default_admin = AdminUser(
-                username='admin',
-                email='admin@samruddhi.com',
-                password_hash=hash_password('admin123')
-            )
-            db.add(default_admin)
-            await db.commit()
-            print('Default admin created: username=admin, password=admin123')
+
+    async with AsyncSessionLocal() as session:
+        await seed_indian_states(session)
+        await seed_indian_cities(session)
 
 @app.get('/')
 async def root():
     return {'message': 'Samruddhi Organics API'}
+
+@app.get('/health')
+async def health(db = Depends(get_db)):
+    try:
+        # Simple DB check
+        await db.execute(select(1))
+    except Exception:
+        raise HTTPException(status_code=503, detail='Database unavailable')
+    return {'status': 'ok'}
