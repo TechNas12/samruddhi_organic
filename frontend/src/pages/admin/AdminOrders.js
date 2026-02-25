@@ -20,6 +20,7 @@ const AdminOrders = () => {
     if (isAuthenticated) {
       fetchOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, authLoading, navigate, statusFilter]);
 
   const fetchOrders = async () => {
@@ -175,11 +176,10 @@ const AdminOrders = () => {
                             key={status}
                             onClick={() => handleStatusUpdate(order.id, status)}
                             disabled={order.status === status}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                              order.status === status
-                                ? 'bg-earth/20 text-earth/50 cursor-not-allowed'
-                                : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
-                            }`}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${order.status === status
+                              ? 'bg-earth/20 text-earth/50 cursor-not-allowed'
+                              : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
+                              }`}
                             data-testid={`update-status-${status}-${order.id}`}
                           >
                             {status.charAt(0).toUpperCase() + status.slice(1)}

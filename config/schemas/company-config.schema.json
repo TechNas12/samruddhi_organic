@@ -1,0 +1,203 @@
+{
+  "$id": "https://samruddhi.local/schemas/company-config.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CompanyConfig",
+  "type": "object",
+  "required": ["version", "environment", "company", "branding"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "environment": { "type": "string", "enum": ["dev", "staging", "prod"] },
+
+    "company": {
+      "type": "object",
+      "required": ["name", "logoUrl"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "tagline": { "type": "string" },
+        "logoUrl": { "type": "string", "format": "uri" },
+        "faviconUrl": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": false
+    },
+
+    "contact": {
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "addressLines": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "mapUrl": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": false
+    },
+
+    "social": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    },
+
+    "legal": {
+      "type": "object",
+      "properties": {
+        "companyRegistration": { "type": "string" },
+        "gstNumber": { "type": "string" },
+        "termsUrl": { "type": "string" },
+        "privacyUrl": { "type": "string" },
+        "refundPolicyUrl": { "type": "string" },
+        "cookiesPolicyUrl": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+
+    "seoDefaults": {
+      "type": "object",
+      "properties": {
+        "titleTemplate": { "type": "string" },
+        "defaultTitle": { "type": "string" },
+        "defaultDescription": { "type": "string" },
+        "defaultKeywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "openGraph": {
+          "type": "object",
+          "properties": {
+            "image": { "type": "string", "format": "uri" },
+            "locale": { "type": "string" },
+            "type": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "branding": {
+      "type": "object",
+      "required": ["colors"],
+      "properties": {
+        "colors": {
+          "type": "object",
+          "properties": {
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "accent": { "type": "string" },
+            "background": { "type": "string" },
+            "text": { "type": "string" }
+          },
+          "additionalProperties": { "type": "string" }
+        },
+        "fonts": {
+          "type": "object",
+          "properties": {
+            "heading": { "type": "string" },
+            "body": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "borderRadius": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "footer": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["title", "links"],
+            "properties": {
+              "title": { "type": "string" },
+              "links": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["label", "href"],
+                  "properties": {
+                    "label": { "type": "string" },
+                    "href": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "bottomBar": {
+          "type": "object",
+          "properties": {
+            "showPoweredBy": { "type": "boolean" },
+            "text": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "featureFlags": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" }
+    },
+
+    "payments": {
+      "type": "object",
+      "properties": {
+        "providers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "merchantKeyPublic": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "currency": { "type": "string" },
+        "displayCurrencySymbol": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+
+    "shipping": {
+      "type": "object",
+      "properties": {
+        "flatRate": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "amount": { "type": "number" },
+            "label": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "pincodes": {}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

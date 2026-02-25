@@ -192,14 +192,14 @@ class OrderResponse(BaseModel):
 class ReviewCreate(BaseModel):
     product_id: Optional[int] = None
     customer_name: str
-    rating: int = Field(ge=1, le=5)
+    rating: float = Field(ge=0.5, le=5.0)
     comment: Optional[str] = None
 
 class ReviewResponse(BaseModel):
     id: int
     product_id: Optional[int]
     customer_name: str
-    rating: int
+    rating: float
     comment: Optional[str]
     is_approved: bool
     created_at: datetime
@@ -217,6 +217,23 @@ class AdminStats(BaseModel):
     total_orders: int
     pending_orders: int
     total_users: int
+
+class ChartDataPoint(BaseModel):
+    date: str
+    sales: float
+    products: int
+
+class AdminAnalyticsStats(BaseModel):
+    total_sales: float
+    total_products_sold: int
+    total_orders: int
+    mean_ticket_price: float
+    avg_sales_per_month: float
+    avg_orders_per_month: float
+    sales_growth_rate: float
+    time_range: str
+    active_months_calculated: float
+    chart_data: List[ChartDataPoint]
 
 
 # Location Models
@@ -671,6 +688,31 @@ async def create_review(
     await db.refresh(new_review)
     return new_review
 
+@api_router.put('/admin/reviews/{review_id}', response_model=ReviewResponse)
+async def admin_update_review(review_id: int, review_data: ReviewCreate, current_admin = Depends(get_current_admin), db = Depends(get_db)):
+    result = await db.execute(select(Review).where(Review.id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail='Review not found')
+    
+    for key, value in review_data.model_dump().items():
+        setattr(review, key, value)
+    
+    await db.commit()
+    await db.refresh(review)
+    return review
+
+@api_router.delete('/admin/reviews/{review_id}')
+async def admin_delete_review(review_id: int, current_admin = Depends(get_current_admin), db = Depends(get_db)):
+    result = await db.execute(select(Review).where(Review.id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail='Review not found')
+    
+    await db.delete(review)
+    await db.commit()
+    return {"message": "Review deleted successfully"}
+
 # Admin Auth
 @api_router.post('/admin/login')
 @limiter.limit("5/minute")
@@ -928,6 +970,134 @@ async def admin_get_stats(current_admin = Depends(get_current_admin), db = Depen
         'total_users': total_users or 0
     }
 
+@api_router.get('/admin/analytics', response_model=AdminAnalyticsStats)
+async def admin_get_analytics(
+    range: str = '30d', 
+    current_admin = Depends(get_current_admin), 
+    db = Depends(get_db)
+):
+    from datetime import datetime, timedelta, timezone
+    
+    now = datetime.now(timezone.utc)
+    
+    # Calculate start date based on range using standard timedelta
+    if range == '7d':
+        start_date = now - timedelta(days=7)
+    elif range == '30d':
+        start_date = now - timedelta(days=30)
+    elif range == '1y':
+        start_date = now - timedelta(days=365)
+    elif range == 'all':
+        # Default arbitrarily to 10 years ago to easily grab everything
+        start_date = now - timedelta(days=365*10)
+    else:
+        # Default to 30 days if unknown
+        start_date = now - timedelta(days=30)
+        range = '30d'
+
+    # 1. Total valid orders (exclude cancelled/failed depending on business logic, here we exclude 'cancelled')
+    orders_query = select(Order).where(
+        Order.created_at >= start_date,
+        Order.created_at < now,
+        Order.status != 'cancelled'
+    )
+    result = await db.execute(orders_query)
+    valid_orders = result.scalars().all()
+    
+    total_orders = len(valid_orders)
+    total_sales = float(sum(order.total_amount for order in valid_orders)) if valid_orders else 0.0
+    
+    # Calculate previous period for growth rate
+    previous_start_date = start_date - (now - start_date)
+    prev_orders_query = select(Order).where(
+        Order.created_at >= previous_start_date,
+        Order.created_at < start_date,
+        Order.status != 'cancelled'
+    )
+    prev_result = await db.execute(prev_orders_query)
+    prev_valid_orders = prev_result.scalars().all()
+    prev_total_sales = float(sum(order.total_amount for order in prev_valid_orders)) if prev_valid_orders else 0.0
+    
+    if prev_total_sales > 0:
+        sales_growth_rate = ((total_sales - prev_total_sales) / prev_total_sales) * 100.0
+    elif total_sales > 0:
+        sales_growth_rate = 100.0  # Infinite growth, capped at 100% for display simplicity
+    else:
+        sales_growth_rate = 0.0
+        
+    # 2. Total products sold (quantity in order_items for these valid orders)
+    total_products_sold = 0
+    if valid_orders:
+        valid_order_ids = [order.id for order in valid_orders]
+        items_query = select(func.sum(OrderItem.quantity)).where(
+            OrderItem.order_id.in_(valid_order_ids)
+        )
+        total_products_sold = await db.scalar(items_query) or 0
+        
+    # Calculate averages
+    mean_ticket_price = (total_sales / total_orders) if total_orders > 0 else 0.0
+    
+    # Calculate months factor for per_month averages
+    days_in_range = (now - start_date).days
+    
+    # Cap minimum days to 1 to avoid ZeroDivisionError, but logically '7d' is 0.23 months.
+    days_in_range = max(1, days_in_range) 
+    months_factor = days_in_range / 30.44  # Average days in a month
+    
+    # If range is "all", it's better to calculate months spanning from their very first order or use days_in_range
+    # Using days_in_range is mathematically consistent.
+    
+    avg_sales_per_month = total_sales / months_factor
+    avg_orders_per_month = total_orders / months_factor
+
+    # 3. Group by Date for Charting
+    from collections import defaultdict
+    chart_dict = defaultdict(lambda: {'sales': 0.0, 'products': 0})
+    
+    # Determine grouping format ('YYYY-MM-DD' for 7d/30d, 'YYYY-MM' for 1y/all)
+    date_format = '%Y-%m-%d' if range in ['7d', '30d'] else '%Y-%m'
+
+    # Group sales
+    for order in valid_orders:
+        date_str = order.created_at.strftime(date_format)
+        chart_dict[date_str]['sales'] += float(order.total_amount)
+        
+    # Group products sold
+    if valid_orders:
+        valid_order_ids = [order.id for order in valid_orders]
+        # We need the product quantities joined with the order date
+        items_with_dates = await db.execute(
+            select(OrderItem.quantity, Order.created_at)
+            .join(Order, OrderItem.order_id == Order.id)
+            .where(Order.id.in_(valid_order_ids))
+        )
+        for qty, created_at in items_with_dates:
+            date_str = created_at.strftime(date_format)
+            chart_dict[date_str]['products'] += qty
+            
+    # Format and sort chart data
+    chart_data = [
+        ChartDataPoint(
+            date=period, 
+            sales=round(data['sales'], 2), 
+            products=data['products']
+        ) 
+        for period, data in sorted(chart_dict.items())
+    ]
+
+    return {
+        'total_sales': round(total_sales, 2),
+        'total_products_sold': total_products_sold,
+        'total_orders': total_orders,
+        'mean_ticket_price': round(mean_ticket_price, 2),
+        'avg_sales_per_month': round(avg_sales_per_month, 2),
+        'avg_orders_per_month': round(avg_orders_per_month, 2),
+        'sales_growth_rate': round(sales_growth_rate, 2),
+        'time_range': range,
+        'active_months_calculated': round(months_factor, 2),
+        'chart_data': chart_data
+    }
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request, exc):
     return JSONResponse(
@@ -942,6 +1112,14 @@ async def admin_get_reviews(current_admin = Depends(get_current_admin), db = Dep
     result = await db.execute(select(Review).order_by(desc(Review.created_at)))
     reviews = result.scalars().all()
     return reviews
+
+@api_router.post('/admin/reviews', response_model=ReviewResponse)
+async def admin_create_review(review_data: ReviewCreate, current_admin = Depends(get_current_admin), db = Depends(get_db)):
+    new_review = Review(**review_data.model_dump())
+    db.add(new_review)
+    await db.commit()
+    await db.refresh(new_review)
+    return new_review
 
 @api_router.patch('/admin/reviews/{review_id}/approve')
 async def admin_approve_review(review_id: int, is_approved: bool, current_admin = Depends(get_current_admin), db = Depends(get_db)):

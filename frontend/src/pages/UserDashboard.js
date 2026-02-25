@@ -41,6 +41,7 @@ const UserDashboard = () => {
     if (isAuthenticated && activeTab === 'orders') {
       fetchOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, loading, activeTab, navigate, location.pathname]);
 
   useEffect(() => {
@@ -112,22 +113,20 @@ const UserDashboard = () => {
         <div className="flex space-x-4 mb-8 border-b border-earth/10">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`pb-4 px-6 font-medium transition-colors ${
-              activeTab === 'orders'
+            className={`pb-4 px-6 font-medium transition-colors ${activeTab === 'orders'
                 ? 'border-b-2 border-forest text-forest'
                 : 'text-earth/60 hover:text-forest'
-            }`}
+              }`}
             data-testid="orders-tab"
           >
             My Orders
           </button>
           <button
             onClick={() => setActiveTab('profile')}
-            className={`pb-4 px-6 font-medium transition-colors ${
-              activeTab === 'profile'
+            className={`pb-4 px-6 font-medium transition-colors ${activeTab === 'profile'
                 ? 'border-b-2 border-forest text-forest'
                 : 'text-earth/60 hover:text-forest'
-            }`}
+              }`}
             data-testid="profile-tab"
           >
             Profile

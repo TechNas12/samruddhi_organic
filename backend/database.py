@@ -143,7 +143,7 @@ class Review(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     product_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('products.id', ondelete='CASCADE'), nullable=True)
     customer_name: Mapped[str] = mapped_column(String(200))
-    rating: Mapped[int] = mapped_column(Integer)
+    rating: Mapped[float] = mapped_column(Numeric(3, 1))
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

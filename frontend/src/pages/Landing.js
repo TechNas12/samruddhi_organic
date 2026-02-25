@@ -27,25 +27,46 @@ const Landing = () => {
   const fetchReviews = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/reviews`);
-      setReviews(res.data.slice(0, 3));
+      setReviews(res.data);
     } catch (error) {
       console.error('Failed to fetch reviews:', error);
     }
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i) {
+        stars.push(<Star key={i} className="w-5 h-5 fill-lime text-lime" />);
+      } else if (rating >= i - 0.5) {
+        stars.push(
+          <div key={i} className="relative w-5 h-5">
+            <Star className="w-5 h-5 text-gray-300 absolute inset-0" />
+            <div className="absolute inset-0 overflow-hidden w-[50%]">
+              <Star className="w-5 h-5 fill-lime text-lime" />
+            </div>
+          </div>
+        );
+      } else {
+        stars.push(<Star key={i} className="w-5 h-5 text-gray-300" />);
+      }
+    }
+    return stars;
   };
 
   return (
     <div className="bg-cream" data-testid="landing-page">
       {/* Hero Section */}
       <section className="relative h-[500px] md:h-[600px] overflow-hidden" data-testid="hero-section">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: 'url(https://images.pexels.com/photos/4863823/pexels-photo-4863823.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940)' }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-earth/90 to-forest/80"></div>
         </div>
-        
+
         <div className="relative container-custom h-full flex items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -139,30 +160,48 @@ const Landing = () => {
 
       {/* Customer Reviews */}
       {reviews.length > 0 && (
-        <section className="py-16" data-testid="reviews-section">
+        <section className="py-16 bg-white overflow-hidden" data-testid="reviews-section">
           <div className="container-custom">
             <div className="text-center mb-12">
               <h2 className="text-4xl md:text-5xl font-bold mb-4 font-syne text-forest">What Our Customers Say</h2>
               <p className="text-earth/70 text-lg">Real experiences from real farmers</p>
             </div>
+          </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {reviews.map((review) => (
-                <motion.div
-                  key={review.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  className="card"
+          <div className="marquee-container" style={{ '--duration': `${Math.max(30, reviews.length * 8)}s` }}>
+            <div className="marquee-content">
+              {[...reviews, ...reviews, ...reviews].map((review, idx) => (
+                <div
+                  key={`${review.id}-${idx}`}
+                  className="card shrink-0 w-[300px] md:w-[400px]"
                   data-testid={`review-${review.id}`}
                 >
-                  <div className="flex items-center mb-4">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-lime text-lime" />
-                    ))}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-1">
+                      {renderStars(review.rating)}
+                    </div>
+                    <span className="font-bold text-lg text-forest bg-lime/10 px-3 py-1 rounded-full">{review.rating.toFixed(1)}</span>
                   </div>
-                  <p className="text-earth/80 mb-4 italic">"{review.comment}"</p>
-                  <p className="font-bold text-forest">{review.customer_name}</p>
-                </motion.div>
+                  <p className="text-earth/80 mb-4 italic line-clamp-4 min-h-[5rem]">"{review.comment}"</p>
+                  <p className="font-bold text-forest text-right">- {review.customer_name}</p>
+                </div>
+              ))}
+            </div>
+            <div className="marquee-content" aria-hidden="true">
+              {[...reviews, ...reviews, ...reviews].map((review, idx) => (
+                <div
+                  key={`${review.id}-clone-${idx}`}
+                  className="card shrink-0 w-[300px] md:w-[400px]"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-1">
+                      {renderStars(review.rating)}
+                    </div>
+                    <span className="font-bold text-lg text-forest bg-lime/10 px-3 py-1 rounded-full">{review.rating.toFixed(1)}</span>
+                  </div>
+                  <p className="text-earth/80 mb-4 italic line-clamp-4 min-h-[5rem]">"{review.comment}"</p>
+                  <p className="font-bold text-forest text-right">- {review.customer_name}</p>
+                </div>
               ))}
             </div>
           </div>

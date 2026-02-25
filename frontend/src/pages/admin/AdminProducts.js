@@ -75,7 +75,7 @@ const AdminProducts = () => {
         await adminAxios.post('/admin/products', data);
         toast.success('Product created successfully!');
       }
-      
+
       setShowForm(false);
       setEditingProduct(null);
       setFormData({ name: '', description: '', category_id: '', price: '', stock: '', image_url: '', is_featured: false });
@@ -127,7 +127,7 @@ const AdminProducts = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       setFormData(prev => ({ ...prev, image_url: res.data.image_url }));
       setImagePreview(res.data.image_url);
       toast.success('Image uploaded successfully!');
@@ -268,13 +268,13 @@ const AdminProducts = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-earth mb-2">Product Image</label>
-                
+
                 {/* Image Preview */}
                 {imagePreview ? (
                   <div className="mb-4 relative inline-block">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
                       className="w-32 h-32 object-cover rounded-lg border-2 border-forest/20"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/150x150?text=Invalid+Image';
@@ -333,7 +333,7 @@ const AdminProducts = () => {
                     <p className="text-xs text-earth/60 mt-1">Or paste an image URL from the web</p>
                   </div>
                 )}
-                
+
                 {/* Show uploaded image URL as read-only if uploaded via file */}
                 {imagePreview && formData.image_url && formData.image_url.includes('/static/uploads/') && (
                   <div className="mt-2">

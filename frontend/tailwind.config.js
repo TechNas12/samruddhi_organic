@@ -3,11 +3,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        cream: '#F5F1E8',
-        forest: '#4A7C59',
-        lime: '#7FB539',
-        earth: '#2D342C',
-        terracotta: '#D87D4A'
+        cream: 'rgb(var(--color-cream) / <alpha-value>)',
+        forest: 'rgb(var(--color-forest) / <alpha-value>)',
+        lime: 'rgb(var(--color-lime) / <alpha-value>)',
+        earth: 'rgb(var(--color-earth) / <alpha-value>)',
+        terracotta: 'rgb(var(--color-terracotta) / <alpha-value>)'
       },
       fontFamily: {
         syne: ['Syne', 'sans-serif'],

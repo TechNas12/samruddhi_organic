@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, UserCheck, UserX } from 'lucide-react';
+import axios from 'axios';
 import { toast } from 'sonner';
-import { useAdmin } from '../../context/AdminContext';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { isAuthenticated, loading: authLoading, adminAxios } = useAdmin();
+  const adminToken = localStorage.getItem('adminToken');
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!adminToken) {
       navigate('/admin/login');
       return;
     }
-    if (isAuthenticated) {
-      fetchUsers();
-    }
-  }, [isAuthenticated, authLoading, navigate]);
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminToken]);
 
   const fetchUsers = async () => {
     try {
-      const res = await adminAxios.get('/admin/users');
+      const res = await axios.get(`${API_URL}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
       setUsers(res.data);
     } catch (error) {
       toast.error('Failed to fetch users');
@@ -33,7 +36,9 @@ const AdminUsers = () => {
 
   const handleToggleStatus = async (userId, currentStatus) => {
     try {
-      await adminAxios.patch(`/admin/users/${userId}/status?is_active=${!currentStatus}`, {});
+      await axios.patch(`${API_URL}/api/admin/users/${userId}/status?is_active=${!currentStatus}`, {}, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
       toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       fetchUsers();
     } catch (error) {
@@ -41,7 +46,7 @@ const AdminUsers = () => {
     }
   };
 
-  if (authLoading || !isAuthenticated) return null;
+  if (!adminToken) return null;
 
   return (
     <div className="min-h-screen bg-cream" data-testid="admin-users-page">
@@ -93,20 +98,18 @@ const AdminUsers = () => {
                       {user.last_login ? new Date(user.last_login).toLocaleDateString('en-IN') : 'Never'}
                     </td>
                     <td className="py-4 px-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`} data-testid={`user-status-${user.id}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`} data-testid={`user-status-${user.id}`}>
                         {user.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-center">
                       <button
                         onClick={() => handleToggleStatus(user.id, user.is_active)}
-                        className={`p-2 rounded-full transition-colors ${
-                          user.is_active
-                            ? 'hover:bg-red-50 text-red-600'
-                            : 'hover:bg-green-50 text-green-600'
-                        }`}
+                        className={`p-2 rounded-full transition-colors ${user.is_active
+                          ? 'hover:bg-red-50 text-red-600'
+                          : 'hover:bg-green-50 text-green-600'
+                          }`}
                         title={user.is_active ? 'Deactivate User' : 'Activate User'}
                         data-testid={`toggle-user-${user.id}`}
                       >

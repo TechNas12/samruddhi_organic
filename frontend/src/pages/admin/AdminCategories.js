@@ -25,6 +25,7 @@ const AdminCategories = () => {
     if (isAuthenticated) {
       fetchCategories();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, authLoading, navigate]);
 
   const fetchCategories = async () => {
@@ -48,7 +49,7 @@ const AdminCategories = () => {
         await adminAxios.post('/admin/categories', formData);
         toast.success('Category created successfully!');
       }
-      
+
       setShowForm(false);
       setEditingCategory(null);
       setFormData({ name: '', description: '', image_url: '' });

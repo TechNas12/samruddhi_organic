@@ -20,6 +20,7 @@ const Products = () => {
   useEffect(() => {
     fetchCategories();
     fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const fetchCategories = async () => {
@@ -86,11 +87,10 @@ const Products = () => {
         <div className="flex flex-wrap justify-center gap-4 mb-12" data-testid="category-filter">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-6 py-2 rounded-full transition-all ${
-              selectedCategory === null
+            className={`px-6 py-2 rounded-full transition-all ${selectedCategory === null
                 ? 'bg-forest text-white'
                 : 'bg-white text-earth hover:bg-forest/10'
-            }`}
+              }`}
             data-testid="category-all"
           >
             All Products
@@ -99,11 +99,10 @@ const Products = () => {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-6 py-2 rounded-full transition-all ${
-                selectedCategory === category.id
+              className={`px-6 py-2 rounded-full transition-all ${selectedCategory === category.id
                   ? 'bg-forest text-white'
                   : 'bg-white text-earth hover:bg-forest/10'
-              }`}
+                }`}
               data-testid={`category-${category.id}`}
             >
               {category.name}
